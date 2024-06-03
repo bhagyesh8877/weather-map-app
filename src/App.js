@@ -98,7 +98,7 @@ const App = () => {
 
   return (
     <Container className="container">
-      <h1>Weather and Map Application</h1>
+      <h1>Weather Application</h1>
       <form onSubmit={handleFormSubmit}>
         <TextField
           label="Latitude"
