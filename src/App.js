@@ -1,8 +1,9 @@
+// src/App.js
 import React, { useState, useEffect, FormEvent } from 'react';
 import WeatherDisplay from './components/WeatherDisplay';
 import MapDisplay from './components/MapDisplay';
 import './App.css';
-import { Container, TextField, Button, Select, MenuItem, FormControl, InputLabel, Grid } from '@mui/material';
+import { Container, TextField, Button, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import axios from 'axios';
 
 const App = () => {
@@ -11,6 +12,7 @@ const App = () => {
   const [unit, setUnit] = useState('metric');
   const [searchHistory, setSearchHistory] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [cityName, setCityName] = useState('');
 
   useEffect(() => {
     const savedHistory = JSON.parse(localStorage.getItem('searchHistory'));
@@ -26,6 +28,7 @@ const App = () => {
   const handleMapClick = (latlng) => {
     const newLocation = { lat: latlng.lat, lon: latlng.lng };
     setLocation(newLocation);
+    fetchCityName(latlng.lat, latlng.lng);
     addToSearchHistory(newLocation);
   };
 
@@ -36,6 +39,7 @@ const App = () => {
     if (!isNaN(lat) && !isNaN(lon)) {
       const newLocation = { lat, lon };
       setLocation(newLocation);
+      fetchCityName(lat, lon);
       addToSearchHistory(newLocation);
     }
   };
@@ -59,13 +63,35 @@ const App = () => {
       });
 
       if (response.data.length > 0) {
-        const { lat, lon } = response.data[0];
+        const { lat, lon, name } = response.data[0];
         const newLocation = { lat, lon };
         setLocation(newLocation);
+        setCityName(name);
         addToSearchHistory(newLocation);
       }
     } catch (error) {
       console.error('Error fetching location data:', error);
+    }
+  };
+
+  const fetchCityName = async (lat, lon) => {
+    try {
+      const response = await axios.get(`http://api.openweathermap.org/geo/1.0/reverse`, {
+        params: {
+          lat,
+          lon,
+          limit: 1,
+          appid: process.env.REACT_APP_OPENWEATHERMAP_API_KEY
+        }
+      });
+
+      if (response.data.length > 0) {
+        setCityName(response.data[0].name);
+      } else {
+        setCityName('');
+      }
+    } catch (error) {
+      console.error('Error fetching city name:', error);
     }
   };
 
@@ -79,6 +105,7 @@ const App = () => {
 
   const handleHistoryClick = (location) => {
     setLocation(location);
+    fetchCityName(location.lat, location.lon);
   };
 
   return (
@@ -112,12 +139,13 @@ const App = () => {
           </ul>
         </div>
       )}
+      <div className="weather-container">
+        <WeatherDisplay lat={location.lat} lon={location.lon} unit={unit} cityName={cityName} />
+      </div>
       <div className="map-container">
         <MapDisplay lat={location.lat} lon={location.lon} zoom={zoom} onMapClick={handleMapClick} />
       </div>
-      <div className="weather-container">
-        <WeatherDisplay lat={location.lat} lon={location.lon} unit={unit} />
-      </div>
+      
     </Container>
   );
 };

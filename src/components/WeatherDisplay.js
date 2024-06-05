@@ -1,9 +1,9 @@
-// src/components/WeatherDisplay.js
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
+import './WeatherDisplay.css';
 
-const WeatherDisplay = ({ lat, lon, unit }) => {
+const WeatherDisplay = ({ lat, lon, unit, cityName }) => {
   const [weather, setWeather] = useState(null);
   const [error, setError] = useState(null);
 
@@ -42,13 +42,21 @@ const WeatherDisplay = ({ lat, lon, unit }) => {
 
   return (
     <div className="weather-info">
-      <h2>Weather Information</h2>
+      <div>
+      <h2>Weather Information: </h2>
+      <h3>{cityName}</h3>
       <p>Temperature: {weather.main.temp}°{unit === 'metric' ? 'C' : 'F'}</p>
       <p>Condition: {weather.weather[0].description}</p>
       <p>Humidity: {weather.main.humidity}%</p>
       <p>Wind Speed: {weather.wind.speed} {unit === 'metric' ? 'm/s' : 'mph'}</p>
       <p>Chance of Rain: {weather.clouds.all}%</p>
+      </div>
+
+      <div>
       <img src={iconUrl} alt="Weather Icon" />
+      <p>{isDayTime ? 'Day' : 'Night'}</p>
+      </div>
+      
     </div>
   );
 };
@@ -57,6 +65,7 @@ WeatherDisplay.propTypes = {
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
   unit: PropTypes.oneOf(['metric', 'imperial']).isRequired,
+  cityName: PropTypes.string.isRequired,
 };
 
 export default WeatherDisplay;
